@@ -18,7 +18,9 @@ class MainActivity : AppCompatActivity() {
     private var marker: Marker? = null
 
     private var locationRef: DatabaseReference? = null
+    private var locationListener: ValueEventListener? = null
     private var hohohoRef: DatabaseReference? = null
+    private var hohohoListener: ValueEventListener? = null
 
     private lateinit var soundPool: SoundPool
     private var soundId: Int = 0
@@ -39,11 +41,26 @@ class MainActivity : AppCompatActivity() {
 
     private fun startTrackingSanta() {
         val database = FirebaseDatabase.getInstance()
-        locationRef = database.getReference("current_location")
-        locationRef?.addValueEventListener(locationListener)
+        locationRef = database.getReference("current_location").apply {
+            locationListener = locationListener ?: ValueEventListenerAdapter { dataSnapshot ->
+                updateMapAndMarker(with(dataSnapshot) {
+                    val latitude = dataSnapshot.child("lat").getNonNullValue(Double::class.java)
+                    val longitude = dataSnapshot.child("lng").getNonNullValue(Double::class.java)
+                    LatLng(latitude, longitude)
+                })
+            }
+            addValueEventListener(locationListener)
+        }
 
-        hohohoRef = database.getReference("ho_ho_hoing")
-        hohohoRef?.addValueEventListener(hohohoListener)
+        hohohoRef = database.getReference("ho_ho_hoing").apply {
+            hohohoListener = hohohoListener ?: ValueEventListenerAdapter { dataSnapshot ->
+                val hohohoing = dataSnapshot.getNonNullValue(Boolean::class.java)
+                if (hohohoing) {
+                    soundPool.play(soundId, 1f, 1f, 10, 0, 1f)
+                }
+            }
+            addValueEventListener(hohohoListener)
+        }
     }
 
     override fun onPause() {
@@ -52,43 +69,23 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
     }
 
-    private val hohohoListener = object: ValueEventListener {
-        override fun onDataChange(dataSnapshot: DataSnapshot) {
-            val hohohoing = dataSnapshot.getValue(Boolean::class.java) as Boolean
-            if (hohohoing) {
-                soundPool.play(soundId, 1f, 1f, 10, 0, 1f)
-            }
-        }
-
-        override fun onCancelled(databaseError: DatabaseError) {
-
-        }
-    }
-
-    private val locationListener = object: ValueEventListener {
-        override fun onDataChange(dataSnapshot: DataSnapshot) {
-            val latitude = dataSnapshot.child("lat").getValue(Double::class.java) as Double
-            val longitude = dataSnapshot.child("lng").getValue(Double::class.java) as Double
-            val position = LatLng(latitude, longitude)
-
-            updateMapAndMarker(position)
-        }
-
-        override fun onCancelled(error: DatabaseError) {
-            // ignoring
-        }
-    }
-
     private fun updateMapAndMarker(position: LatLng) {
         map?.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 9f))
 
         if (marker == null) {
             val options = MarkerOptions()
-                    .position(position)
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.santa))
+                    .position(position)
             marker = map?.addMarker(options)
         } else {
             marker?.position = position
         }
     }
+
+    private class ValueEventListenerAdapter(val lambda: (DataSnapshot) -> Unit) : ValueEventListener {
+        override fun onDataChange(dataSnapshot: DataSnapshot) = lambda(dataSnapshot)
+        override fun onCancelled(error: DatabaseError) = Unit
+    }
+
+    private fun <T> DataSnapshot.getNonNullValue(type: Class<T>): T = getValue(type) ?: throw IllegalStateException()
 }
