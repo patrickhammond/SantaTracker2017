@@ -68,15 +68,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateMapAndMarker(position: LatLng) {
-        map?.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 9f))
+        map?.let { map ->
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 9f))
 
-        if (marker == null) {
-            val options = MarkerOptions()
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.santa))
-                    .position(position)
-            marker = map?.addMarker(options)
-        } else {
-            marker?.position = position
+            if (marker == null) {
+                val options = MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.santa))
+                        .position(position)
+                marker = map.addMarker(options)
+            } else {
+                marker?.position = position
+            }
         }
     }
 
