@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
@@ -14,7 +13,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.database.*
 
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback {
+class MainActivity : AppCompatActivity() {
     private var map: GoogleMap? = null
     private var marker: Marker? = null
 
@@ -29,15 +28,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         setContentView(R.layout.activity_main)
 
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
+        mapFragment.getMapAsync { googleMap ->
+            map = googleMap
+            startTrackingSanta()
+        }
 
         soundPool = SoundPool.Builder().build()
         soundId = soundPool.load(this, R.raw.hohoho, 1)
-    }
-
-    override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
-        startTrackingSanta()
     }
 
     private fun startTrackingSanta() {
