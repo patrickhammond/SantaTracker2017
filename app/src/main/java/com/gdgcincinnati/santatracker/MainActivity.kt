@@ -16,6 +16,10 @@ import com.google.firebase.database.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private var map: GoogleMap? = null
+    private var marker: Marker? = null
+
+    private var locationRef: DatabaseReference? = null
+    private var hohohoRef: DatabaseReference? = null
 
     private lateinit var soundPool: SoundPool
     private var soundId: Int = 0
@@ -35,9 +39,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         map = googleMap
         startTrackingSanta()
     }
-
-    private var locationRef: DatabaseReference? = null
-    private var hohohoRef: DatabaseReference? = null
 
     private fun startTrackingSanta() {
         val database = FirebaseDatabase.getInstance()
@@ -80,11 +81,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             // ignoring
         }
     }
-
-
-
-
-    private var marker: Marker? = null
 
     private fun updateMapAndMarker(position: LatLng) {
         map?.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 9f))
