@@ -55,9 +55,7 @@ class MainActivity : AppCompatActivity() {
         hohohoRef = database.getReference("ho_ho_hoing").apply {
             hohohoListener = hohohoListener ?: ValueEventListenerAdapter { dataSnapshot ->
                 val hohohoing = dataSnapshot.getNonNullValue(Boolean::class.java)
-                if (hohohoing) {
-                    soundPool.play(soundId, 1f, 1f, 10, 0, 1f)
-                }
+                playSantaIfHohohoing(hohohoing)
             }
             addValueEventListener(hohohoListener)
         }
@@ -79,6 +77,12 @@ class MainActivity : AppCompatActivity() {
             marker = map?.addMarker(options)
         } else {
             marker?.position = position
+        }
+    }
+
+    private fun playSantaIfHohohoing(hohohoing: Boolean) {
+        if (hohohoing) {
+            soundPool.play(soundId, 1f, 1f, 10, 0, 1f)
         }
     }
 
